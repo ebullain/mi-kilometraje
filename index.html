@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Mi Kilometraje</title>
+        
+        <!-- PWA Meta Tags -->
+        <link rel="manifest" href="manifest.json">
+        <meta name="theme-color" content="#667eea">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="black">
+        <meta name="apple-mobile-web-app-title" content="Kilometraje">
+        
+        <link rel="stylesheet" href="styles.css">
+        <!-- Iconos para iOS y Android -->
+        <link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==">
+        <link rel="icon" type="image/png" sizes="192x192" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==">
+    </head>
+<body>
+    <div class="app-container">
+        <!-- Encabezado -->
+        <header>
+            <h1>🚗 Mi Kilometraje</h1>
+            <p class="fecha-actual" id="fechaActual"></p>
+        </header>
+
+        <!-- Pestañas de Navegación -->
+        <nav class="tabs">
+            <button class="tab-btn active" data-tab="registro">📝 Registrar</button>
+            <button class="tab-btn" data-tab="historial">📋 Historial</button>
+            <button class="tab-btn" data-tab="estadisticas">📊 Estadísticas</button>
+        </nav>
+
+        <!-- Contenido Principal -->
+        <main>
+            <!-- Sección de Registro -->
+            <section id="registro" class="tab-content active">
+                <form id="formViaje">
+                    <div class="form-group">
+                        <label for="fecha">Fecha:</label>
+                        <input type="date" id="fecha" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="hodometroInicial">Hodómetro Inicial (km):</label>
+                        <input type="number" id="hodometroInicial" 
+                               placeholder="Ej: 45230" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="hodometroFinal">Hodómetro Final (km):</label>
+                        <input type="number" id="hodometroFinal" 
+                               placeholder="Ej: 45280" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="lugar">Lugar de Destino:</label>
+                        <input type="text" id="lugar" 
+                               placeholder="Ej: Oficina, Supermercado..." required>
+                        <datalist id="lugaresSugeridos"></datalist>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="proposito">Propósito (opcional):</label>
+                        <select id="proposito">
+                            <option value="">Seleccionar...</option>
+                            <option value="trabajo">Trabajo</option>
+                            <option value="personal">Personal</option>
+                            <option value="compras">Compras</option>
+                            <option value="salud">Salud</option>
+                            <option value="otro">Otro</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn-primary">
+                        💾 Guardar Viaje
+                    </button>
+                </form>
+
+                <!-- Último viaje registrado -->
+                <div id="ultimoViaje" class="ultimo-viaje"></div>
+            </section>
+
+            <!-- Sección de Historial -->
+            <section id="historial" class="tab-content">
+                <div class="filtros">
+                    <input type="month" id="filtroMes">
+                    <button onclick="filtrarPorMes()" class="btn-secondary">
+                        Filtrar
+                    </button>
+                    <button onclick="limpiarFiltro()" class="btn-secondary">
+                        Ver Todo
+                    </button>
+                </div>
+                <div id="listaViajes" class="lista-viajes"></div>
+            </section>
+
+            <!-- Sección de Estadísticas -->
+            <section id="estadisticas" class="tab-content">
+                <div class="stats-container">
+                    <div class="stat-card">
+                        <h3>Este Mes</h3>
+                        <p class="stat-number" id="kmMes">0 km</p>
+                        <p class="stat-label">Kilómetros recorridos</p>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <h3>Viajes Totales</h3>
+                        <p class="stat-number" id="totalViajes">0</p>
+                        <p class="stat-label">Viajes registrados</p>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <h3>Lugares Frecuentes</h3>
+                        <div id="lugaresFrecuentes"></div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
