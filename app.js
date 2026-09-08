@@ -1,4 +1,4 @@
-// ============ GESTIÓN DE DATOS ============
+/// ============ GESTIÓN DE DATOS ============
 
 // Clase para manejar los viajes
 class GestorViajes {
@@ -51,8 +51,7 @@ class GestorViajes {
 
     // Obtener estadísticas del mes actual
     estadisticasMesActual() {
-        const hoy = new Date();
-        const mesActual = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}`;
+        const mesActual = obtenerMesActual();
         const viajesMes = this.filtrarPorMes(mesActual);
         
         return {
@@ -65,6 +64,65 @@ class GestorViajes {
 
 // Inicializar gestor
 const gestor = new GestorViajes();
+
+// ============ FUNCIONES DE FECHA ============
+
+// Función para obtener la fecha local en formato YYYY-MM-DD
+function obtenerFechaLocal() {
+    const ahora = new Date();
+    
+    // Obtener componentes de fecha en hora LOCAL
+    const año = ahora.getFullYear();
+    const mes = ahora.getMonth() + 1;
+    const dia = ahora.getDate();
+    
+    // Formatear con ceros a la izquierda
+    const mesFormateado = mes < 10 ? `0${mes}` : mes;
+    const diaFormateado = dia < 10 ? `0${dia}` : dia;
+    
+    return `${año}-${mesFormateado}-${diaFormateado}`;
+}
+
+// Función para obtener el mes actual en formato YYYY-MM
+function obtenerMesActual() {
+    const ahora = new Date();
+    const año = ahora.getFullYear();
+    const mes = ahora.getMonth() + 1;
+    const mesFormateado = mes < 10 ? `0${mes}` : mes;
+    return `${año}-${mesFormateado}`;
+}
+
+// Mostrar fecha actual en el encabezado
+function mostrarFechaActual() {
+    const ahora = new Date();
+    
+    const opciones = { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric'
+    };
+    
+    document.getElementById('fechaActual').textContent = 
+        ahora.toLocaleDateString('es-ES', opciones);
+}
+
+// Formatear fecha para mostrar
+function formatearFecha(fechaISO) {
+    if (!fechaISO) return 'Fecha no disponible';
+    
+    // Dividir la fecha ISO en componentes
+    const [año, mes, dia] = fechaISO.split('-').map(Number);
+    
+    // Crear fecha con componentes locales
+    const fecha = new Date(año, mes - 1, dia);
+    
+    return fecha.toLocaleDateString('es-ES', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+    });
+}
 
 // ============ FUNCIONES DE UI ============
 
@@ -93,43 +151,36 @@ function cambiarTab(tabName) {
     }
 }
 
-// Mostrar fecha actual
-function mostrarFechaActual() {
-    const fecha = new Date();
-    const opciones = { 
-        weekday: 'long', 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric',
-    };
-    document.getElementById('fechaActual').textContent = 
-        fecha.toLocaleDateString('es-ES', opciones);
-}
-
-// Función para obtener la fecha local en formato YYYY-MM-DD
-function obtenerFechaLocal() {
-    const ahora = new Date();
-    const año = ahora.getFullYear();
-    const mes = String(ahora.getMonth() + 1).padStart(2, '0');
-    const dia = String(ahora.getDate()).padStart(2, '0');
-    return `${año}-${mes}-${dia}`;
-}
-
 // Guardar nuevo viaje
 function guardarViaje(event) {
     event.preventDefault();
-
+    
+    console.log('💾 Iniciando guardado de viaje...');
+    
     // Obtener la fecha del formulario
     let fechaViaje = document.getElementById('fecha').value;
+
+        // NO MODIFICAR la fecha si ya tiene un valor
+    console.log('📅 Fecha del input:', fechaViaje);
     
-    // Si no hay fecha seleccionada, usar la fecha actual local
+    // Si no hay fecha, usar la fecha local actual
     if (!fechaViaje) {
         fechaViaje = obtenerFechaLocal();
         document.getElementById('fecha').value = fechaViaje;
+        console.log('📅 No había fecha, se usó la actual:', fechaViaje);
+    }
+    
+    // Verificar que la fecha no sea futura
+   // const fechaActual = obtenerFechaLocal();
+   // if (fechaViaje > fechaActual) {
+    //    console.warn('⚠️ Fecha futura detectada:', fechaViaje);
+    //    alert('⚠️ La fecha no puede ser futura');
+    //    document.getElementById('fecha').value = fechaActual;
+     //   return;
     }
     
     const viaje = {
-        fecha: document.getElementById('fecha').value,
+        fecha: fechaViaje,
         hodometroInicial: parseInt(document.getElementById('hodometroInicial').value),
         hodometroFinal: parseInt(document.getElementById('hodometroFinal').value),
         lugar: document.getElementById('lugar').value,
@@ -137,10 +188,12 @@ function guardarViaje(event) {
         timestamp: new Date().toISOString()
     };
     
+    console.log('📊 Datos del viaje a guardar:', viaje);
+    
     // Validar que el hodómetro final sea mayor al inicial
     if (viaje.hodometroFinal <= viaje.hodometroInicial) {
         alert('⚠️ El hodómetro final debe ser mayor que el inicial');
-        return;
+        //return;
     }
     
     // Guardar viaje
@@ -155,11 +208,16 @@ function guardarViaje(event) {
     // Limpiar formulario
     document.getElementById('formViaje').reset();
     
+    // Restablecer la fecha actual
+    document.getElementById('fecha').value = obtenerFechaLocal();
+    
     // Actualizar sugerencias de lugares
     actualizarSugerenciasLugares();
     
     // Mensaje de éxito
-    alert(`✅ Viaje guardado correctamente\n📏 ${kilometros} km recorridos`);
+    alert(`✅ Viaje guardado correctamente\n📅 Fecha: ${formatearFecha(viaje.fecha)}\n📍 Lugar: ${viaje.lugar}\n📏 ${kilometros} km recorridos`);
+    
+    console.log('✅ Viaje guardado exitosamente');
 }
 
 // Mostrar último viaje registrado
@@ -202,6 +260,7 @@ function filtrarPorMes() {
     if (mes) {
         const viajesFiltrados = gestor.filtrarPorMes(mes);
         mostrarHistorial(viajesFiltrados);
+        console.log(`🔍 Filtrando por mes: ${mes} - ${viajesFiltrados.length} viajes encontrados`);
     }
 }
 
@@ -209,6 +268,7 @@ function filtrarPorMes() {
 function limpiarFiltro() {
     document.getElementById('filtroMes').value = '';
     mostrarHistorial();
+    console.log('🔄 Filtro limpiado');
 }
 
 // Mostrar estadísticas
@@ -222,12 +282,14 @@ function mostrarEstadisticas() {
         ? stats.lugaresFrecuentes.map(([lugar, veces]) => `
             <div class="lugar-frecuente">
                 <span>📍 ${lugar}</span>
-                <span class="veces">${veces} veces</span>
+                <span class="veces">${veces} ${veces === 1 ? 'vez' : 'veces'}</span>
             </div>
         `).join('')
         : '<p>No hay datos suficientes</p>';
     
     document.getElementById('lugaresFrecuentes').innerHTML = lugaresHTML;
+    
+    console.log('📊 Estadísticas actualizadas:', stats);
 }
 
 // Actualizar sugerencias de lugares
@@ -235,78 +297,60 @@ function actualizarSugerenciasLugares() {
     const lugares = gestor.lugaresFrecuentes(10);
     const datalist = document.getElementById('lugaresSugeridos');
     
-    datalist.innerHTML = lugares.map(([lugar]) => 
-        `<option value="${lugar}">`
-    ).join('');
+    if (datalist) {
+        datalist.innerHTML = lugares.map(([lugar]) => 
+            `<option value="${lugar}">`
+        ).join('');
+    }
 }
 
-// Formatear fecha
-function formatearFecha(fechaISO) {
-    const fecha = new Date(fechaISO);
-    return fecha.toLocaleDateString('es-ES', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
-    });
-}
+// ============ FUNCIONES DE CORRECCIÓN ============
 
-// ============ FUNCIONES DE FECHA CORREGIDAS ============
-
-// Función para obtener la fecha local en formato YYYY-MM-DD
-function obtenerFechaLocal() {
-    const ahora = new Date();
-    const año = ahora.getFullYear();
-    const mes = String(ahora.getMonth() + 1).padStart(2, '0');
-    const dia = String(ahora.getDate()).padStart(2, '0');
-    return `${año}-${mes}-${dia}`;
-}
-
-// Función para formatear fecha para mostrar
-function formatearFecha(fechaISO) {
-    if (!fechaISO) return 'Fecha no disponible';
+// Función para corregir fechas de viajes existentes
+function corregirFechasExistentes() {
+    const viajes = gestor.obtenerViajes();
+    let corregidos = 0;
     
-    // Crear fecha desde el string ISO
-    const partes = fechaISO.split('-');
-    const fecha = new Date(partes[0], partes[1] - 1, partes[2]);
-    
-    return fecha.toLocaleDateString('es-ES', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
+    viajes.forEach(viaje => {
+        // Verificar si la fecha parece incorrecta (futura)
+        const fechaActual = obtenerFechaLocal();
+        if (viaje.fecha > fechaActual) {
+            // Corregir restando un día
+            const [año, mes, dia] = viaje.fecha.split('-').map(Number);
+            const fechaCorregida = new Date(año, mes - 1, dia - 1);
+            
+            viaje.fecha = `${fechaCorregida.getFullYear()}-${String(fechaCorregida.getMonth() + 1).padStart(2, '0')}-${String(fechaCorregida.getDate()).padStart(2, '0')}`;
+            corregidos++;
+            
+            console.log(`🔧 Corregida fecha de viaje: ${viaje.lugar} - ${viaje.fecha}`);
+        }
     });
-}
-
-// Mostrar fecha actual
-function mostrarFechaActual() {
-    const fecha = new Date();
-    const opciones = { 
-        weekday: 'long', 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric',
-    };
-    document.getElementById('fechaActual').textContent = 
-        fecha.toLocaleDateString('es-ES', opciones);
+    
+    if (corregidos > 0) {
+        gestor.guardar();
+        console.log(`🔧 Se corrigieron ${corregidos} viajes con fechas incorrectas`);
+        alert(`🔧 Se corrigieron ${corregidos} viajes con fechas incorrectas`);
+    }
 }
 
 // ============ INICIALIZACIÓN ============
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Mostrar fecha actual
+    console.log('🚀 Inicializando aplicación...');
+    
+    // Mostrar fecha actual en el encabezado
     mostrarFechaActual();
     
-    // Función de depuración para ver qué fecha se está usando
-    function depurarFecha() {
-        const ahora = new Date();
-        console.log('Fecha completa:', ahora.toString());
-        console.log('Fecha local:', ahora.toLocaleDateString('es-ES'));
-        console.log('Fecha ISO (UTC):', ahora.toISOString());
-        console.log('Fecha local formateada:', obtenerFechaLocal());
+    // Establecer fecha actual en el formulario
+    const fechaActual = obtenerFechaLocal();
+    const inputFecha = document.getElementById('fecha');
+    if (inputFecha) {
+        inputFecha.value = fechaActual;
+        console.log('📅 Fecha establecida en formulario:', fechaActual);
     }
-
-    // Establecer fecha actual en el formulario (CORREGIDO)
-    const fechaHoy = obtenerFechaLocal();
-    document.getElementById('fecha').value = fechaHoy;
+    
+    // Corregir fechas de viajes existentes
+    corregirFechasExistentes();
     
     // Event listeners para las pestañas
     document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -316,7 +360,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     
     // Event listener para el formulario
-    document.getElementById('formViaje').addEventListener('submit', guardarViaje);
+    const formViaje = document.getElementById('formViaje');
+    if (formViaje) {
+        formViaje.addEventListener('submit', guardarViaje);
+    }
     
     // Cargar sugerencias de lugares
     actualizarSugerenciasLugares();
@@ -324,7 +371,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // Mostrar historial inicial
     mostrarHistorial();
     
-    console.log('📅 Fecha actual:', fechaHoy);
+    // Información de depuración
+    console.log('📅 Fecha del formulario:', fechaActual);
+    console.log('🕐 Hora actual:', new Date().toLocaleTimeString());
+    console.log('✅ Aplicación inicializada correctamente');
 });
 
 // ============ REGISTRO DEL SERVICE WORKER ============
